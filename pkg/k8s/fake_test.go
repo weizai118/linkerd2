@@ -200,7 +200,7 @@ spec:
     shortNames:
     - fc`,
 			runtime.NewNotRegisteredGVKErrForTarget(
-				"k8s.io/client-go/kubernetes/scheme/register.go:61",
+				"pkg/runtime/scheme.go:101",
 				schema.GroupVersionKind{Group: "apiextensions.k8s.io", Version: "v1beta1", Kind: "CustomResourceDefinition"},
 				nil,
 			),
