@@ -11,6 +11,7 @@ import (
 	"github.com/linkerd/linkerd2/pkg/version"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 const (
@@ -148,6 +149,14 @@ const (
 	// disableExternalProfilesAnnotation config.
 	ProxyDisableExternalProfilesAnnotation = ProxyConfigAnnotationsPrefix + "/disable-external-profiles"
 
+	// ProxyPodWeightAnnotation configures an individual pod's
+	// traffic weighting.
+	//
+	// Values are specified as other Kubernetes resources so that 100m == 0.1.
+	//
+	// The default weight is 1.0 (or 1000m).
+	ProxyPodWeightAnnotation = ProxyConfigAnnotationsPrefix + "/pod-weight"
+
 	// IdentityModeDefault is assigned to IdentityModeAnnotation to
 	// use the control plane's default identity scheme.
 	IdentityModeDefault = "default"
@@ -224,6 +233,20 @@ const (
 // CreatedByAnnotation.
 func CreatedByAnnotationValue() string {
 	return fmt.Sprintf("linkerd/cli %s", version.Version)
+}
+
+// GetPodWeight retrieves a pod's weight, accounting for annotation overrides.
+func GetPodWeight(pod *corev1.Pod) uint32 {
+	if w := pod.Annotations[ProxyPodWeightAnnotation]; w != "" {
+		q, err := resource.ParseQuantity(w)
+		if err == nil {
+			if w, ok := q.ToDec().AsInt64(); ok {
+				return uint32(w)
+			}
+		}
+	}
+
+	return 1000
 }
 
 // GetServiceAccountAndNS returns the pod's serviceaccount and namespace.
