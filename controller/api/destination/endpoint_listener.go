@@ -215,7 +215,7 @@ func (l *endpointListener) toWeightedAddr(address *updateAddress) *pb.WeightedAd
 	}
 }
 
-func (l *endpointListener) getAddrMetadata(pod *corev1.Pod) (usize, map[string]string, *pb.ProtocolHint, *pb.TlsIdentity) {
+func (l *endpointListener) getAddrMetadata(pod *corev1.Pod) (uint32, map[string]string, *pb.ProtocolHint, *pb.TlsIdentity) {
 	weight := pkgK8s.GetPodWeight(pod)
 
 	controllerNS := pod.Labels[pkgK8s.ControllerNSLabel]
