@@ -244,7 +244,7 @@ func GetPodWeight(pod *corev1.Pod) uint32 {
 		if err != nil {
 			log.Warnf("Could not parse weight override on %s: %s", pod.Name, err)
 		} else {
-			if w, ok := q.ToDec().AsInt64(); ok {
+			if w, ok := q.AsInt64(); ok {
 				return uint32(w)
 			} else {
 				log.Warn("Could not convert weight override")
