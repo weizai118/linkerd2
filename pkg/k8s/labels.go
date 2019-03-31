@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/linkerd/linkerd2/pkg/version"
+	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -238,12 +239,19 @@ func CreatedByAnnotationValue() string {
 // GetPodWeight retrieves a pod's weight, accounting for annotation overrides.
 func GetPodWeight(pod *corev1.Pod) uint32 {
 	if w := pod.Annotations[ProxyPodWeightAnnotation]; w != "" {
+		log.Debugf("%s: %s=%s", pod.Name, ProxyPodWeightAnnotation, w)
 		q, err := resource.ParseQuantity(w)
-		if err == nil {
+		if err != nil {
+			log.Warnf("Could not parse weight override on %s: %s", pod.Name, err)
+		} else {
 			if w, ok := q.ToDec().AsInt64(); ok {
 				return uint32(w)
+			} else {
+				log.Warn("Could not convert weight override")
 			}
 		}
+	} else {
+		log.Debugf("%s has no weight override", pod.Name)
 	}
 
 	return 1000
