@@ -302,7 +302,7 @@ func (options *injectOptions) fetchConfigsOrDefault() (*config.All, error) {
 // storing the corresponding annotations and values.
 func (options *proxyConfigOptions) overrideConfigs(configs *config.All, overrideAnnotations map[string]string) {
 	if options.linkerdVersion != "" {
-		configs.Global.Version = options.linkerdVersion
+		overrideAnnotations[k8s.ProxyVersionOverrideAnnotation] = options.linkerdVersion
 	}
 
 	if len(options.ignoreInboundPorts) > 0 {
@@ -366,9 +366,9 @@ func (options *proxyConfigOptions) overrideConfigs(configs *config.All, override
 	// keep track of this option because its true/false value results in different
 	// values being assigned to the LINKERD2_PROXY_DESTINATION_PROFILE_SUFFIXES
 	// env var. Its annotation is added only if its value is true.
-	configs.Proxy.DisableExternalProfiles = options.disableExternalProfiles
-	if options.disableExternalProfiles {
-		overrideAnnotations[k8s.ProxyDisableExternalProfilesAnnotation] = "true"
+	configs.Proxy.DisableExternalProfiles = !options.enableExternalProfiles
+	if options.enableExternalProfiles {
+		overrideAnnotations[k8s.ProxyEnableExternalProfilesAnnotation] = "true"
 	}
 
 	if options.proxyCPURequest != "" {

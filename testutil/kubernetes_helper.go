@@ -21,14 +21,15 @@ import (
 // KubernetesHelper provides Kubernetes-related test helpers. It connects to the
 // Kubernetes API using the environment's configured kubeconfig file.
 type KubernetesHelper struct {
-	clientset *kubernetes.Clientset
-	retryFor  func(time.Duration, func() error) error
+	k8sContext string
+	clientset  *kubernetes.Clientset
+	retryFor   func(time.Duration, func() error) error
 }
 
 // NewKubernetesHelper creates a new instance of KubernetesHelper.
-func NewKubernetesHelper(retryFor func(time.Duration, func() error) error) (*KubernetesHelper, error) {
+func NewKubernetesHelper(k8sContext string, retryFor func(time.Duration, func() error) error) (*KubernetesHelper, error) {
 	rules := clientcmd.NewDefaultClientConfigLoadingRules()
-	overrides := &clientcmd.ConfigOverrides{}
+	overrides := &clientcmd.ConfigOverrides{CurrentContext: k8sContext}
 	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(rules, overrides)
 	config, err := kubeConfig.ClientConfig()
 	if err != nil {
@@ -41,8 +42,9 @@ func NewKubernetesHelper(retryFor func(time.Duration, func() error) error) (*Kub
 	}
 
 	return &KubernetesHelper{
-		clientset: clientset,
-		retryFor:  retryFor,
+		clientset:  clientset,
+		k8sContext: k8sContext,
+		retryFor:   retryFor,
 	}, nil
 }
 
@@ -53,11 +55,16 @@ func (h *KubernetesHelper) CheckIfNamespaceExists(namespace string) error {
 }
 
 // CreateNamespaceIfNotExists creates a namespace if it does not already exist.
-func (h *KubernetesHelper) CreateNamespaceIfNotExists(namespace string) error {
+func (h *KubernetesHelper) CreateNamespaceIfNotExists(namespace string, annotations map[string]string) error {
 	err := h.CheckIfNamespaceExists(namespace)
 
 	if err != nil {
-		ns := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
+		ns := &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: annotations,
+				Name:        namespace,
+			},
+		}
 		_, err = h.clientset.CoreV1().Namespaces().Create(ns)
 
 		if err != nil {
@@ -76,20 +83,19 @@ func (h *KubernetesHelper) KubectlApply(stdin string, namespace string) (string,
 		namespace = "default"
 	}
 
-	err := h.CreateNamespaceIfNotExists(namespace)
+	err := h.CreateNamespaceIfNotExists(namespace, nil)
 	if err != nil {
 		return "", err
 	}
 
-	cmd := exec.Command("kubectl", "apply", "-f", "-", "--namespace", namespace)
-	cmd.Stdin = strings.NewReader(stdin)
-	out, err := cmd.CombinedOutput()
-	return string(out), err
+	return h.Kubectl(stdin, "apply", "-f", "-", "--namespace", namespace)
 }
 
 // Kubectl executes an arbitrary Kubectl command
-func (h *KubernetesHelper) Kubectl(arg ...string) (string, error) {
-	cmd := exec.Command("kubectl", arg...)
+func (h *KubernetesHelper) Kubectl(stdin string, arg ...string) (string, error) {
+	withContext := append(arg, "--context="+h.k8sContext)
+	cmd := exec.Command("kubectl", withContext...)
+	cmd.Stdin = strings.NewReader(stdin)
 	out, err := cmd.CombinedOutput()
 	return string(out), err
 }
@@ -197,7 +203,7 @@ func (h *KubernetesHelper) CheckService(namespace string, serviceName string) er
 }
 
 // GetPodsForDeployment returns all pods for the given deployment
-func (h *KubernetesHelper) GetPodsForDeployment(namespace string, deploymentName string) ([]string, error) {
+func (h *KubernetesHelper) GetPodsForDeployment(namespace string, deploymentName string) ([]corev1.Pod, error) {
 	deploy, err := h.clientset.AppsV1beta2().Deployments(namespace).Get(deploymentName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -210,8 +216,18 @@ func (h *KubernetesHelper) GetPodsForDeployment(namespace string, deploymentName
 		return nil, err
 	}
 
+	return podList.Items, nil
+}
+
+// GetPodNamesForDeployment returns all pod names for the given deployment
+func (h *KubernetesHelper) GetPodNamesForDeployment(namespace string, deploymentName string) ([]string, error) {
+	podList, err := h.GetPodsForDeployment(namespace, deploymentName)
+	if err != nil {
+		return nil, err
+	}
+
 	pods := make([]string, 0)
-	for _, pod := range podList.Items {
+	for _, pod := range podList {
 		pods = append(pods, pod.Name)
 	}
 
@@ -234,7 +250,7 @@ func (h *KubernetesHelper) ParseNamespacedResource(resource string) (string, str
 // tests can use for access to the given deployment. Note that the port-forward
 // remains running for the duration of the test.
 func (h *KubernetesHelper) URLFor(namespace, deployName string, remotePort int) (string, error) {
-	config, err := k8s.GetConfig("", "")
+	config, err := k8s.GetConfig("", h.k8sContext)
 	if err != nil {
 		return "", err
 	}

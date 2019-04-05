@@ -17,6 +17,7 @@ import (
 type expectedProxyConfigs struct {
 	image                      string
 	imagePullPolicy            corev1.PullPolicy
+	imageVersion               string
 	controlPort                int32
 	inboundPort                int32
 	adminPort                  int32
@@ -64,7 +65,12 @@ func TestConfigAccessors(t *testing.T) {
 		LogLevel:                &config.LogLevel{Level: "info,linkerd2_proxy=debug"},
 		DisableExternalProfiles: false,
 	}
-	globalConfig := &config.Global{LinkerdNamespace: "linkerd"}
+
+	globalConfig := &config.Global{
+		LinkerdNamespace: "linkerd",
+		Version:          "default",
+	}
+
 	configs := &config.All{Global: globalConfig, Proxy: proxyConfig}
 
 	var testCases = []struct {
@@ -77,22 +83,23 @@ func TestConfigAccessors(t *testing.T) {
 				Template: corev1.PodTemplateSpec{
 					metav1.ObjectMeta{
 						Annotations: map[string]string{
-							k8s.ProxyImageAnnotation:                   "gcr.io/linkerd-io/proxy",
-							k8s.ProxyImagePullPolicyAnnotation:         "Always",
-							k8s.ProxyInitImageAnnotation:               "gcr.io/linkerd-io/proxy-init",
-							k8s.ProxyControlPortAnnotation:             "4000",
-							k8s.ProxyInboundPortAnnotation:             "5000",
-							k8s.ProxyAdminPortAnnotation:               "5001",
-							k8s.ProxyOutboundPortAnnotation:            "5002",
-							k8s.ProxyIgnoreInboundPortsAnnotation:      "4222,6222",
-							k8s.ProxyIgnoreOutboundPortsAnnotation:     "8079,8080",
-							k8s.ProxyCPURequestAnnotation:              "0.15",
-							k8s.ProxyMemoryRequestAnnotation:           "120",
-							k8s.ProxyCPULimitAnnotation:                "1.5",
-							k8s.ProxyMemoryLimitAnnotation:             "256",
-							k8s.ProxyUIDAnnotation:                     "8500",
-							k8s.ProxyLogLevelAnnotation:                "debug,linkerd2_proxy=debug",
-							k8s.ProxyDisableExternalProfilesAnnotation: "true"},
+							k8s.ProxyImageAnnotation:                  "gcr.io/linkerd-io/proxy",
+							k8s.ProxyImagePullPolicyAnnotation:        "Always",
+							k8s.ProxyInitImageAnnotation:              "gcr.io/linkerd-io/proxy-init",
+							k8s.ProxyControlPortAnnotation:            "4000",
+							k8s.ProxyInboundPortAnnotation:            "5000",
+							k8s.ProxyAdminPortAnnotation:              "5001",
+							k8s.ProxyOutboundPortAnnotation:           "5002",
+							k8s.ProxyIgnoreInboundPortsAnnotation:     "4222,6222",
+							k8s.ProxyIgnoreOutboundPortsAnnotation:    "8079,8080",
+							k8s.ProxyCPURequestAnnotation:             "0.15",
+							k8s.ProxyMemoryRequestAnnotation:          "120",
+							k8s.ProxyCPULimitAnnotation:               "1.5",
+							k8s.ProxyMemoryLimitAnnotation:            "256",
+							k8s.ProxyUIDAnnotation:                    "8500",
+							k8s.ProxyLogLevelAnnotation:               "debug,linkerd2_proxy=debug",
+							k8s.ProxyEnableExternalProfilesAnnotation: "false",
+							k8s.ProxyVersionOverrideAnnotation:        "override"},
 					},
 					corev1.PodSpec{},
 				},
@@ -100,6 +107,7 @@ func TestConfigAccessors(t *testing.T) {
 			expected: expectedProxyConfigs{
 				image:           "gcr.io/linkerd-io/proxy",
 				imagePullPolicy: corev1.PullPolicy("Always"),
+				imageVersion:    "override",
 				controlPort:     int32(4000),
 				inboundPort:     int32(5000),
 				adminPort:       int32(5001),
@@ -163,6 +171,7 @@ func TestConfigAccessors(t *testing.T) {
 			expected: expectedProxyConfigs{
 				image:           "gcr.io/linkerd-io/proxy",
 				imagePullPolicy: corev1.PullPolicy("IfNotPresent"),
+				imageVersion:    "default",
 				controlPort:     int32(9000),
 				inboundPort:     int32(6000),
 				adminPort:       int32(6001),
@@ -241,6 +250,13 @@ func TestConfigAccessors(t *testing.T) {
 			t.Run("proxyImagePullPolicy", func(t *testing.T) {
 				expected := testCase.expected.imagePullPolicy
 				if actual := resourceConfig.proxyImagePullPolicy(); expected != actual {
+					t.Errorf("Expected: %v Actual: %v", expected, actual)
+				}
+			})
+
+			t.Run("proxyVersion", func(t *testing.T) {
+				expected := testCase.expected.imageVersion
+				if actual := resourceConfig.proxyVersion(); expected != actual {
 					t.Errorf("Expected: %v Actual: %v", expected, actual)
 				}
 			})

@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/fatih/color"
-	pb "github.com/linkerd/linkerd2/controller/gen/public"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	k8sResource "k8s.io/apimachinery/pkg/api/resource"
@@ -171,39 +170,28 @@ func getSuccessRate(success, failure uint64) float64 {
 	return float64(success) / float64(success+failure)
 }
 
-// getPercentTLS calculates the percent of traffic that is TLS, from Public API
-// BasicStats.
-func getPercentTLS(stats *pb.BasicStats) float64 {
-	reqTotal := stats.SuccessCount + stats.FailureCount
-	if reqTotal == 0 {
-		return 0.0
-	}
-	return float64(stats.TlsRequestCount) / float64(reqTotal)
-}
-
 // proxyConfigOptions holds values for command line flags that apply to both the
 // install and inject commands. All fields in this struct should have
 // corresponding flags added in the addProxyConfigFlags func later in this file.
 type proxyConfigOptions struct {
-	linkerdVersion          string
-	proxyImage              string
-	initImage               string
-	dockerRegistry          string
-	imagePullPolicy         string
-	ignoreInboundPorts      []uint
-	ignoreOutboundPorts     []uint
-	proxyUID                int64
-	proxyLogLevel           string
-	proxyInboundPort        uint
-	proxyOutboundPort       uint
-	proxyControlPort        uint
-	proxyAdminPort          uint
-	proxyCPURequest         string
-	proxyMemoryRequest      string
-	proxyCPULimit           string
-	proxyMemoryLimit        string
-	disableExternalProfiles bool
-	noInitContainer         bool
+	linkerdVersion         string
+	proxyImage             string
+	initImage              string
+	dockerRegistry         string
+	imagePullPolicy        string
+	ignoreInboundPorts     []uint
+	ignoreOutboundPorts    []uint
+	proxyUID               int64
+	proxyLogLevel          string
+	proxyInboundPort       uint
+	proxyOutboundPort      uint
+	proxyControlPort       uint
+	proxyAdminPort         uint
+	proxyCPURequest        string
+	proxyMemoryRequest     string
+	proxyCPULimit          string
+	proxyMemoryLimit       string
+	enableExternalProfiles bool
 	// ignoreCluster is not validated by validate().
 	ignoreCluster bool
 }
@@ -292,8 +280,7 @@ func (options *proxyConfigOptions) flagSet(e pflag.ErrorHandling) *pflag.FlagSet
 	flags.StringVar(&options.proxyMemoryRequest, "proxy-memory-request", options.proxyMemoryRequest, "Amount of Memory that the proxy sidecar requests")
 	flags.StringVar(&options.proxyCPULimit, "proxy-cpu-limit", options.proxyCPULimit, "Maximum amount of CPU units that the proxy sidecar can use")
 	flags.StringVar(&options.proxyMemoryLimit, "proxy-memory-limit", options.proxyMemoryLimit, "Maximum amount of Memory that the proxy sidecar can use")
-	flags.BoolVar(&options.disableExternalProfiles, "disable-external-profiles", options.disableExternalProfiles, "Disables service profiles for non-Kubernetes services")
-	flags.BoolVar(&options.noInitContainer, "linkerd-cni-enabled", options.noInitContainer, "Experimental: Omit the proxy-init container when injecting the proxy; requires the linkerd-cni plugin to already be installed")
+	flags.BoolVar(&options.enableExternalProfiles, "enable-external-profiles", options.enableExternalProfiles, "Enable service profiles for non-Kubernetes services")
 
 	// Deprecated flags
 	flags.StringVar(&options.proxyMemoryRequest, "proxy-memory", options.proxyMemoryRequest, "Amount of Memory that the proxy sidecar requests")

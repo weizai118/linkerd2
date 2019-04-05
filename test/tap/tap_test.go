@@ -27,6 +27,7 @@ type tapEvent struct {
 	path       string
 	httpStatus string
 	grpcStatus string
+	tls        string
 	lineCount  int
 }
 
@@ -37,6 +38,7 @@ var (
 		path:       "/buoyantio.bb.TheService/theFunction",
 		httpStatus: "200",
 		grpcStatus: "OK",
+		tls:        "true",
 		lineCount:  3,
 	}
 
@@ -46,6 +48,7 @@ var (
 		path:       "/buoyantio.bb.TheService/theFunction",
 		httpStatus: "200",
 		grpcStatus: "Unknown",
+		tls:        "true",
 		lineCount:  3,
 	}
 
@@ -55,6 +58,7 @@ var (
 		path:       "/",
 		httpStatus: "200",
 		grpcStatus: "",
+		tls:        "true",
 		lineCount:  3,
 	}
 
@@ -64,6 +68,7 @@ var (
 		path:       "/",
 		httpStatus: "500",
 		grpcStatus: "",
+		tls:        "true",
 		lineCount:  3,
 	}
 )
@@ -121,7 +126,7 @@ func TestCliTap(t *testing.T) {
 
 	t.Run("tap a pod", func(t *testing.T) {
 		deploy := "t3"
-		pods, err := TestHelper.GetPodsForDeployment(prefixedNs, deploy)
+		pods, err := TestHelper.GetPodNamesForDeployment(prefixedNs, deploy)
 		if err != nil {
 			t.Fatalf("Failed to get pods for deployment [%s]\n%s", deploy, err)
 		}
@@ -191,6 +196,7 @@ func tap(target string, arg ...string) ([]*tapEvent, error) {
 			tapEventByID[fields["id"]] = obj
 		}
 		obj.lineCount++
+		obj.tls = fields["tls"]
 
 		switch fields["type"] {
 		case "req":

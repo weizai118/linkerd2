@@ -146,9 +146,12 @@ const (
 	// ProxyLogLevelAnnotation can be used to override the log level config.
 	ProxyLogLevelAnnotation = ProxyConfigAnnotationsPrefix + "/proxy-log-level"
 
-	// ProxyDisableExternalProfilesAnnotation can be used to override the
+	// ProxyEnableExternalProfilesAnnotation can be used to override the
 	// disableExternalProfilesAnnotation config.
-	ProxyDisableExternalProfilesAnnotation = ProxyConfigAnnotationsPrefix + "/disable-external-profiles"
+	ProxyEnableExternalProfilesAnnotation = ProxyConfigAnnotationsPrefix + "/enable-external-profiles"
+
+	// ProxyVersionOverrideAnnotation can be used to override the proxy version config.
+	ProxyVersionOverrideAnnotation = ProxyConfigAnnotationsPrefix + "/proxy-version"
 
 	// ProxyPodWeightAnnotation configures an individual pod's
 	// traffic weighting.
@@ -198,9 +201,17 @@ const (
 	// ProxyAdminPortName is the name of the Linkerd Proxy's metrics port.
 	ProxyAdminPortName = "linkerd-admin"
 
-	// ProxyInjectorWebhookConfig is the name of the mutating webhook
-	// configuration resource of the proxy-injector webhook.
-	ProxyInjectorWebhookConfig = "linkerd-proxy-injector-webhook-config"
+	// ProxyInjectorWebhookServiceName is the name of the mutating webhook service
+	ProxyInjectorWebhookServiceName = "linkerd-proxy-injector"
+
+	// ProxyInjectorWebhookConfigName is the name of the mutating webhook configuration
+	ProxyInjectorWebhookConfigName = ProxyInjectorWebhookServiceName + "-webhook-config"
+
+	// SPValidatorWebhookServiceName is the name of the validating webhook service
+	SPValidatorWebhookServiceName = "linkerd-sp-validator"
+
+	// SPValidatorWebhookConfigName is the name of the validating webhook configuration
+	SPValidatorWebhookConfigName = SPValidatorWebhookServiceName + "-webhook-config"
 
 	/*
 	 * Mount paths

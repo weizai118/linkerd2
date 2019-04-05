@@ -24,7 +24,7 @@ spec:
         - "9090"
         - --response-text
         - c1
-        image: buoyantio/bb:v1
+        image: buoyantio/bb:v0.0.5
         name: http-to-grpc-two-replicas-c1
         ports:
         - containerPort: 9090
@@ -35,7 +35,7 @@ spec:
         - "8080"
         - --response-text
         - c2
-        image: buoyantio/bb:v1
+        image: buoyantio/bb:v0.0.5
         name: http-to-grpc-two-replicas-c2
         ports:
         - containerPort: 9090
@@ -54,7 +54,7 @@ spec:
         - name: LINKERD2_PROXY_INBOUND_LISTEN_ADDR
           value: 0.0.0.0:4143
         - name: LINKERD2_PROXY_DESTINATION_PROFILE_SUFFIXES
-          value: .
+          value: svc.cluster.local.
         - name: LINKERD2_PROXY_INBOUND_ACCEPT_KEEPALIVE
           value: 10000ms
         - name: LINKERD2_PROXY_OUTBOUND_CONNECT_KEEPALIVE
@@ -176,7 +176,7 @@ spec:
         - "9090"
         - --response-text
         - c1
-        image: buoyantio/bb:v1
+        image: buoyantio/bb:v0.0.5
         name: http-to-grpc-one-replica-c1
         ports:
         - containerPort: 9090
@@ -187,7 +187,7 @@ spec:
         - "8080"
         - --response-text
         - c2
-        image: buoyantio/bb:v1
+        image: buoyantio/bb:v0.0.5
         name: http-to-grpc-one-replica-c2
         ports:
         - containerPort: 9090
@@ -206,7 +206,7 @@ spec:
         - name: LINKERD2_PROXY_INBOUND_LISTEN_ADDR
           value: 0.0.0.0:4143
         - name: LINKERD2_PROXY_DESTINATION_PROFILE_SUFFIXES
-          value: .
+          value: svc.cluster.local.
         - name: LINKERD2_PROXY_INBOUND_ACCEPT_KEEPALIVE
           value: 10000ms
         - name: LINKERD2_PROXY_OUTBOUND_CONNECT_KEEPALIVE
