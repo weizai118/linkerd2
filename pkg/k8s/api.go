@@ -15,6 +15,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
+	// apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+
+	// apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+
 	// Load all the auth plugins for the cloud providers.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
@@ -25,6 +30,7 @@ var minAPIVersion = [3]int{1, 10, 0}
 type KubernetesAPI struct {
 	*rest.Config
 	kubernetes.Interface
+	Apiextensions apiextensionsclient.Interface // for CRDs
 }
 
 // NewAPI validates a Kubernetes config and returns a client for accessing the
@@ -46,10 +52,15 @@ func NewAPI(configPath, kubeContext string, timeout time.Duration) (*KubernetesA
 	if err != nil {
 		return nil, fmt.Errorf("error configuring Kubernetes API clientset: %v", err)
 	}
+	apiextensions, err := apiextensionsclient.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("error configuring Kubernetes API Extensions clientset: %v", err)
+	}
 
 	return &KubernetesAPI{
-		Config:    config,
-		Interface: clientset,
+		Config:        config,
+		Interface:     clientset,
+		Apiextensions: apiextensions,
 	}, nil
 }
 

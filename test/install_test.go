@@ -218,6 +218,30 @@ func TestInstallSP(t *testing.T) {
 	}
 }
 
+// TODO: run this after a `linkerd install config`
+func TestCheckConfigPostInstall(t *testing.T) {
+	cmd := []string{"check", "config", "--wait=0"}
+	golden := "check.config.golden"
+
+	err := TestHelper.RetryFor(time.Minute, func() error {
+		out, _, err := TestHelper.LinkerdRun(cmd...)
+
+		if err != nil {
+			return fmt.Errorf("Check command failed\n%s", out)
+		}
+
+		err = TestHelper.ValidateOutput(out, golden)
+		if err != nil {
+			return fmt.Errorf("Received unexpected output\n%s", err.Error())
+		}
+
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+}
+
 func TestCheckPostInstall(t *testing.T) {
 	cmd := []string{"check", "--expected-version", TestHelper.GetVersion(), "--wait=0"}
 	golden := "check.golden"
