@@ -36,7 +36,7 @@ spec:
   template:
     metadata:
       labels:
-        {{.ControllerComponentLabel}}: controller
+        {{.ControllerComponentLabel}}: tap
       annotations:
         {{.CreatedByAnnotation}}: {{.CliVersion}}
     spec:
