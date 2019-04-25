@@ -7,7 +7,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: linkerd-tap-api
+  name: linkerd-tap
   namespace: {{.Namespace}}
   labels:
     {{.ControllerComponentLabel}}: tap
