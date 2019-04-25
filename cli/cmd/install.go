@@ -542,6 +542,7 @@ func (values *installValues) render(w io.Writer, configs *pb.All) error {
 			{Name: "templates/prometheus-rbac.yaml"},
 			{Name: "templates/proxy_injector-rbac.yaml"},
 			{Name: "templates/sp_validator-rbac.yaml"},
+			{Name: "templates/tap-rbac.yaml"},
 		}...)
 	}
 
@@ -556,6 +557,7 @@ func (values *installValues) render(w io.Writer, configs *pb.All) error {
 			{Name: "templates/grafana.yaml"},
 			{Name: "templates/proxy_injector.yaml"},
 			{Name: "templates/sp_validator.yaml"},
+			{Name: "templates/tap.yaml"},
 		}...)
 	}
 

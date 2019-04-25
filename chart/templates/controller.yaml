@@ -123,33 +123,6 @@ spec:
         {{ end -}}
         securityContext:
           runAsUser: {{.ControllerUID}}
-      - name: tap
-        ports:
-        - name: grpc
-          containerPort: 8088
-        - name: admin-http
-          containerPort: 9998
-        image: {{.ControllerImage}}
-        imagePullPolicy: {{.ImagePullPolicy}}
-        args:
-        - "tap"
-        - "-controller-namespace={{.Namespace}}"
-        - "-log-level={{.ControllerLogLevel}}"
-        livenessProbe:
-          httpGet:
-            path: /ping
-            port: 9998
-          initialDelaySeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 9998
-          failureThreshold: 7
-        {{ with .TapResources -}}
-        {{- template "resources" . }}
-        {{ end -}}
-        securityContext:
-          runAsUser: {{.ControllerUID}}
       volumes:
       - name: config
         configMap:
